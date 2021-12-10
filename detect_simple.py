@@ -3,29 +3,29 @@ import core.utils as utils
 from tensorflow.python.saved_model import tag_constants
 import cv2
 import numpy as np
-import os
+import os #모듈 import 
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-MODEL_PATH = './checkpoints/yolov4-416'
-IOU_THRESHOLD = 0.45
-SCORE_THRESHOLD = 0.25
-INPUT_SIZE = 416
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' #enable 오류
+MODEL_PATH = './checkpoints/yolov4-416' # 모델 기본 위치
+IOU_THRESHOLD = 0.45  # 한계점 설정
+SCORE_THRESHOLD = 0.40 # 최소 점수 만족
+INPUT_SIZE = 416 #사진 크기
 
 # load model
-saved_model_loaded = tf.saved_model.load(MODEL_PATH, tags=[tag_constants.SERVING])
-infer = saved_model_loaded.signatures['serving_default']
+saved_model_loaded = tf.saved_model.load(MODEL_PATH, tags=[tag_constants.SERVING]) # 학습된 모델 부르기
+infer = saved_model_loaded.signatures['serving_default'] #시그니쳐 키 설정
 
 def main(img_path):
     
-    img = cv2.imread(img_path)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = cv2.imread(img_path) # img road
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # bgr 형식 rgb로 convert
 
-    img_input = cv2.resize(img, (INPUT_SIZE, INPUT_SIZE))
-    img_input = img_input / 255.
-    img_input = img_input[np.newaxis, ...].astype(np.float32)
-    img_input = tf.constant(img_input)
+    img_input = cv2.resize(img, (INPUT_SIZE, INPUT_SIZE)) # 크기 재설정
+    img_input = img_input / 255. # 크기 재설정
+    img_input = img_input[np.newaxis, ...].astype(np.float32) # 축 설정
+    img_input = tf.constant(img_input) # numpy를 tf 로 변환
 
-    pred_bbox = infer(img_input)
+    pred_bbox = infer(img_input) #  모델에 img 추가
 
     for key, value in pred_bbox.items():
         boxes = value[:, :, 0:4]
@@ -40,12 +40,14 @@ def main(img_path):
         iou_threshold=IOU_THRESHOLD,
         score_threshold=SCORE_THRESHOLD
     )
+    #iou, score 넘는 애들만 체크 
+
 
     pred_bbox = [boxes.numpy(), scores.numpy(), classes.numpy(), valid_detections.numpy()]
-    result = utils.draw_bbox(img, pred_bbox)
+    result = utils.draw_bbox(img, pred_bbox) #바운딩 박스 추가
 
-    result = cv2.cvtColor(np.array(result), cv2.COLOR_RGB2BGR)
-    cv2.imwrite('res.png', result)
+    result = cv2.cvtColor(np.array(result), cv2.COLOR_RGB2BGR) # 재변환
+    cv2.imwrite('res.png', result) # 사진 저장
 
 if __name__ == '__main__':
     img_path = './data/central.jpg'

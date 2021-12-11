@@ -130,7 +130,7 @@ def draw_bbox(image, bboxes, classes=read_class_names(cfg.YOLO.CLASSES), show_la
     hsv_tuples = [(1.0 * x / num_classes, 1., 1.) for x in range(num_classes)]
     colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples))
     colors = list(map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)), colors))
-
+    ret_exc = []
     random.seed(0)
     random.shuffle(colors)
     random.seed(None)
@@ -151,7 +151,13 @@ def draw_bbox(image, bboxes, classes=read_class_names(cfg.YOLO.CLASSES), show_la
         bbox_thick = int(0.6 * (image_h + image_w) / 600)
         c1, c2 = (int(coor[1]), int(coor[0])), (int(coor[3]), int(coor[2]))
         cv2.rectangle(image, c1, c2, bbox_color, bbox_thick)
-
+        ret_exc.append([])
+        ret_exc[i].append(classes[class_ind])
+        ret_exc[i].append(score)
+        ret_exc[i].append(int(coor[0]))
+        ret_exc[i].append(int(coor[1]))
+        ret_exc[i].append(int(coor[2]))
+        ret_exc[i].append(int(coor[3]))
         if show_label:
             bbox_mess = '%s: %.2f' % (classes[class_ind], score)
             t_size = cv2.getTextSize(bbox_mess, 0, fontScale, thickness=bbox_thick // 2)[0]
@@ -160,7 +166,7 @@ def draw_bbox(image, bboxes, classes=read_class_names(cfg.YOLO.CLASSES), show_la
 
             cv2.putText(image, bbox_mess, (c1[0], int(np.float32(c1[1] - 2))), cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale, (0, 0, 0), bbox_thick // 2, lineType=cv2.LINE_AA)
-    return image
+    return image,ret_exc
 
 def bbox_iou(bboxes1, bboxes2):
     """

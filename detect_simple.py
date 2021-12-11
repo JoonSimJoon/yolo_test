@@ -3,6 +3,8 @@ import core.utils as utils
 from tensorflow.python.saved_model import tag_constants
 import cv2
 import numpy as np
+import openpyxl 
+from datetime import date
 import os #모듈 import 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' #enable 오류
@@ -27,11 +29,17 @@ def main(img_path):
 
     pred_bbox = infer(img_input) #  모델에 img 추가
 
+    wb = openpyxl.Workbook()
+    wb.active.title = "bounding_boxes" #excel file 설정
+    wsheet = wb["bounding_boxes"]
+    tday = date.today()
+    tday_w = tday.strftime('%Y-%b-%d-%A')
+
     for key, value in pred_bbox.items():
         boxes = value[:, :, 0:4]
         pred_conf = value[:, :, 4:]
 
-    boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
+    boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression( #nms 진행 
         boxes=tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),
         scores=tf.reshape(
             pred_conf, (tf.shape(pred_conf)[0], -1, tf.shape(pred_conf)[-1])),
@@ -42,12 +50,17 @@ def main(img_path):
     )
     #iou, score 넘는 애들만 체크 
 
-
     pred_bbox = [boxes.numpy(), scores.numpy(), classes.numpy(), valid_detections.numpy()]
-    result = utils.draw_bbox(img, pred_bbox) #바운딩 박스 추가
+    result,result_exc = utils.draw_bbox(img, pred_bbox) #바운딩 박스 추가
+    for i in range(len(result_exc)):
+        for j in range(len(result_exc[i])):
+            wsheet.cell(i+1,j+1).value = result_exc[i][j]
+
 
     result = cv2.cvtColor(np.array(result), cv2.COLOR_RGB2BGR) # 재변환
     cv2.imwrite('res.png', result) # 사진 저장
+    new_ex_file = './excel/result_excel'+"("+tday_w+")"+'.xlsx'
+    wb.save(new_ex_file)
 
 if __name__ == '__main__':
     img_path = './data/central.jpg'

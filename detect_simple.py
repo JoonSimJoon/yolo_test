@@ -54,7 +54,7 @@ def main(img_path):
     result,result_exc = utils.draw_bbox(img, pred_bbox) #바운딩 박스 추가
     for i in range(len(result_exc)):
         for j in range(len(result_exc[i])):
-            wsheet.cell(i+1,j+1).value = result_exc[i][j]
+            wsheet.cell(i+2,j+1).value = result_exc[i][j]
 
 
     result = cv2.cvtColor(np.array(result), cv2.COLOR_RGB2BGR) # 재변환

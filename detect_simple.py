@@ -34,6 +34,13 @@ def main(img_path):
     wsheet = wb["bounding_boxes"]
     tday = date.today()
     tday_w = tday.strftime('%Y-%b-%d-%A')
+    wsheet.cell(1,1).value = "classes"
+    wsheet.cell(1,2).value = "score"
+    wsheet.cell(1,3).value = "UL"
+    wsheet.cell(1,4).value = "UR"
+    wsheet.cell(1,5).value = "DL"
+    wsheet.cell(1,6).value = "DR"
+
 
     for key, value in pred_bbox.items():
         boxes = value[:, :, 0:4]
@@ -55,7 +62,8 @@ def main(img_path):
     for i in range(len(result_exc)):
         for j in range(len(result_exc[i])):
             wsheet.cell(i+2,j+1).value = result_exc[i][j]
-
+    wsheet.cell(1,8).value = len(result_exc)
+    
 
     result = cv2.cvtColor(np.array(result), cv2.COLOR_RGB2BGR) # 재변환
     cv2.imwrite('res.png', result) # 사진 저장

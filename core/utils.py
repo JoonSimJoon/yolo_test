@@ -155,8 +155,8 @@ def draw_bbox(image, bboxes, classes=read_class_names(cfg.YOLO.CLASSES), show_la
         ret_exc[i].append(classes[class_ind])
         ret_exc[i].append(score)
         ret_exc[i].append(int(coor[0]))
-        ret_exc[i].append(int(coor[1]))
         ret_exc[i].append(int(coor[2]))
+        ret_exc[i].append(int(coor[1]))
         ret_exc[i].append(int(coor[3]))
         if show_label:
             bbox_mess = '%s: %.2f' % (classes[class_ind], score)

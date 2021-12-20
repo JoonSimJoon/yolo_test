@@ -31,7 +31,7 @@ def main(img_path):
 
     wb = openpyxl.Workbook()
     wb.active.title = "bounding_boxes" #excel file 설정
-    wsheet = wb["bounding_boxes"]
+    wsheet = wb["bounding_boxes"] 
     tday = date.today()
     tday_w = tday.strftime('%Y-%b-%d-%A')
     wsheet.cell(1,1).value = "classes"
@@ -49,7 +49,7 @@ def main(img_path):
     boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression( #nms 진행 
         boxes=tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),
         scores=tf.reshape(
-            pred_conf, (tf.shape(pred_conf)[0], -1, tf.shape(pred_conf)[-1])),
+            pred_conf, (tf.shape(pred_conf)[0], -1, tf.shape(pred_conf)[-1])), #모델 정확도 측정
         max_output_size_per_class=50,
         max_total_size=50,
         iou_threshold=IOU_THRESHOLD,
@@ -61,7 +61,7 @@ def main(img_path):
     result,result_exc = utils.draw_bbox(img, pred_bbox) #바운딩 박스 추가
     for i in range(len(result_exc)):
         for j in range(len(result_exc[i])):
-            wsheet.cell(i+2,j+1).value = result_exc[i][j]
+            wsheet.cell(i+2,j+1).value = result_exc[i][j] #엑셀 설정
     wsheet.cell(1,8).value = len(result_exc)
     
 

@@ -5,6 +5,9 @@ import cv2
 import numpy as np
 import openpyxl 
 from datetime import date
+from PIL import Image
+from openpyxl.cell import cell
+import shutil
 import os #모듈 import 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' #enable 오류
@@ -17,7 +20,11 @@ INPUT_SIZE = 416 #사진 크기
 saved_model_loaded = tf.saved_model.load(MODEL_PATH, tags=[tag_constants.SERVING]) # 학습된 모델 부르기
 infer = saved_model_loaded.signatures['serving_default'] #시그니쳐 키 설정
 
-def main(img_path):
+tday = date.today()
+tday_w = tday.strftime('%Y-%b-%d-%A')
+Exc_Location = './excel/result_excel'+"("+tday_w+")"+'.xlsx' #엑셀 링크
+
+def img_detect(img_path):
     
     img = cv2.imread(img_path) # img road
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # bgr 형식 rgb로 convert
@@ -32,14 +39,12 @@ def main(img_path):
     wb = openpyxl.Workbook()
     wb.active.title = "bounding_boxes" #excel file 설정
     wsheet = wb["bounding_boxes"] 
-    tday = date.today()
-    tday_w = tday.strftime('%Y-%b-%d-%A')
     wsheet.cell(1,1).value = "classes"
     wsheet.cell(1,2).value = "score"
-    wsheet.cell(1,3).value = "UL"
-    wsheet.cell(1,4).value = "UR"
-    wsheet.cell(1,5).value = "DL"
-    wsheet.cell(1,6).value = "DR"
+    wsheet.cell(1,3).value = "UL_x"
+    wsheet.cell(1,4).value = "UL_y"
+    wsheet.cell(1,5).value = "DR_x"
+    wsheet.cell(1,6).value = "DR_y"
 
 
     for key, value in pred_bbox.items():
@@ -67,9 +72,28 @@ def main(img_path):
 
     result = cv2.cvtColor(np.array(result), cv2.COLOR_RGB2BGR) # 재변환
     cv2.imwrite('res.png', result) # 사진 저장
-    new_ex_file = './excel/result_excel'+"("+tday_w+")"+'.xlsx'
-    wb.save(new_ex_file)
+    wb.save(Exc_Location)
+
+
+def img_cut(Exc_Location):
+    img = cv2.imread('./data/central.jpg')
+    shutil.rmtree('./cut_img') #자른 사진 저장 폴더 초기화
+    os.makedirs('./cut_img')
+
+    wb = openpyxl.load_workbook(Exc_Location)
+    ws = wb["bounding_boxes"]
+    object_cnt = ws.cell(1,8).value # (1,8)에는 항상 감지한 물체들의 개수가 써져있음
+
+
+    for i in range(2,object_cnt+2):
+        cropped_img = img[ws.cell(i,3).value:ws.cell(i,4).value,
+            ws.cell(i,5).value:ws.cell(i,6).value].copy() #사진 자르기
+        cv2.imwrite('./cut_img/'+str(i-1)+
+            '.jpg',cropped_img) #사진 저장
+    wb.close()
+
 
 if __name__ == '__main__':
     img_path = './data/central.jpg'
-    main(img_path)
+    img_detect(img_path)
+    img_cut(Exc_Location)

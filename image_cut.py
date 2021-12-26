@@ -20,7 +20,7 @@ def main(Exc_Location):
     for i in range(2,object_cnt+2):
         cropped_img = img[ws.cell(i,3).value:ws.cell(i,4).value,
             ws.cell(i,5).value:ws.cell(i,6).value].copy() #사진 자르기
-        cv2.imwrite('./cut_img/'+str(i-1)+"_"+cell(i,1).value+
+        cv2.imwrite('./cut_img/'+str(i-1)+
             '.jpg',cropped_img) #사진 저장
     wb.close()
 

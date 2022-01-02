@@ -9,6 +9,7 @@ def measure():
     tan = math.tan(math.pi * (Angle/180))
     print(tan)
     standard_size = tan*Distance
+    
 
 if __name__ == '__main__':
     measure()
